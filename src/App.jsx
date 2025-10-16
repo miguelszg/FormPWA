@@ -80,7 +80,7 @@ export default function TechDependencyApp() {
     setLoading(true);
     try {
       // Aquí va la llamada real a tu API de MongoDB
-      const response = await fetch('http://form-back-neon.vercel.app/api/responses', {
+      const response =await fetch('https://form-back-neon.vercel.app/api/responses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
