@@ -18,7 +18,7 @@ export default function TechDependencyApp() {
   // Red neuronal simple con pesos ajustados
   const simpleNeuralNetwork = (inputs) => {
     // Pesos para cada pregunta (ajustados para dar más importancia a ciertas preguntas)
-    const weights = [0.3, 0.4, 0.2, 0.1];
+    const weights = [0.25, 0.35, 0.20, 0.30];
     const bias = -0.5;
     
     // Calcular suma ponderada
@@ -61,15 +61,15 @@ export default function TechDependencyApp() {
       let level = 'bajo';
       let message = 'Tienes un nivel bajo de dependencia tecnológica.';
       
-      if (score > 0.7) {
+      if (score > 0.65) {
         level = 'alto';
         message = 'Tienes un nivel alto de dependencia tecnológica. Considera reducir el uso.';
-      } else if (score > 0.4) {
+      } else if (score > 0.35) {
         level = 'medio';
         message = 'Tienes un nivel medio de dependencia tecnológica. Mantén el equilibrio.';
       }
       
-      setPrediction({ level, score: score.toFixed(2), message });
+      setPrediction({ level, score: score.toFixed(4), message });
       setIsCompleted(true);
       
       await saveToDatabase(newResponses, level, score);
@@ -79,29 +79,29 @@ export default function TechDependencyApp() {
   const saveToDatabase = async (data, level, score) => {
     setLoading(true);
     try {
-      // Aquí va la llamada real a tu API de MongoDB
-      const response =await fetch('https://form-back-neon.vercel.app/api/responses', {
+      // CORRECCIÓN: Enviar datos en el formato correcto
+      const response = await fetch('https://form-back-neon.vercel.app/api/responses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          responses: data,
+          responses: data,  // ← Aquí va el objeto con las respuestas
           prediction: level,
-          score: parseFloat(score),
-          timestamp: new Date().toISOString()
+          score: parseFloat(score)
         })
       });
       
       if (!response.ok) {
-        throw new Error('Error al guardar');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al guardar');
       }
       
-      console.log('Datos guardados exitosamente');
+      const result = await response.json();
+      console.log('✓ Datos guardados exitosamente:', result);
     } catch (error) {
-      console.error('Error al guardar en la base de datos:', error);
-      // En desarrollo, simular guardado exitoso
-      console.log('Datos que se guardarían:', { data, level, score });
+      console.error('✗ Error al guardar en la base de datos:', error);
+      alert('Hubo un problema al guardar los datos. Revisa la consola.');
     } finally {
       setLoading(false);
     }
@@ -147,7 +147,7 @@ export default function TechDependencyApp() {
                 </span>
               </p>
               <p className="text-sm text-gray-600 mb-4">
-                Puntuación: {(prediction.score * 100).toFixed(0)}%
+                Puntuación: {(prediction.score * 100).toFixed(1)}%
               </p>
               <p className="text-gray-700 leading-relaxed">
                 {prediction.message}
@@ -159,21 +159,25 @@ export default function TechDependencyApp() {
               <div className="space-y-2 text-sm">
                 {questions.map(q => (
                   <div key={q.id} className="flex justify-between items-center">
-                    <span className="text-gray-600">{q.text}</span>
+                    <span className="text-gray-600 text-left flex-1">{q.text}</span>
                     {responses[q.key] ? 
-                      <CheckCircle className="w-5 h-5 text-green-600" /> : 
-                      <XCircle className="w-5 h-5 text-red-600" />
+                      <CheckCircle className="w-5 h-5 text-green-600 ml-2" /> : 
+                      <XCircle className="w-5 h-5 text-red-600 ml-2" />
                     }
                   </div>
                 ))}
               </div>
             </div>
 
-            {loading && <p className="text-blue-600 mb-4">Guardando datos...</p>}
+            {loading && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-blue-600 text-sm">💾 Guardando datos en la base de datos...</p>
+              </div>
+            )}
 
             <button
               onClick={resetQuiz}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105"
             >
               Realizar nuevo cuestionario
             </button>
